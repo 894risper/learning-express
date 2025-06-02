@@ -1,0 +1,6 @@
+nano .gitignore
+node_modules/
+.env
+.next/
+dist/
+out/
