@@ -2,12 +2,25 @@ import express from "express"
 
 const app =express();
 
+app.use(express.json())
+
+const loggingMiddleware =(req,res,next)=>{
+    console.log(`${req.method} - ${req.url}`);
+    next ();
+}
+
+
+
+app.use(loggingMiddleware);
 const PORT= process.env.PORT || 3000
 
 const mockUsers=[
     {id:1,username:"anson", course:"CS"},
          {id:2,username:"Victor", course:"tie"},
-          {id:3,username:"Joshua", course:"civil"}
+          {id:3,username:"Joshua", course:"civil"},
+          {id:4 ,username:"mary", course:"eduction"},
+          {id:5, username:"benedict",course:"IT"},
+          {id:6,username:"isaac",course:"medicine"}
 ]
 
 const products= [
@@ -18,13 +31,40 @@ const products= [
     
 ]
 
-app.get("/",(req,res)=>{
-    res.send("hello world")
+app.get("/",
+    (req,res,next)=>
+{
+console.log("base url");
+next();
+},
+   (req,res) =>{
+res.send("hello world")
+
 });
 
 app.get("/api/users",(req,res)=>{
-    res.send(mockUsers)
+    console.log(req.query)
+
+    const {query:{
+        filter,value
+    },}=req;
+
+    if (!filter && !value) return res.send(mockUsers)
+    
+        if (filter && value) return res.send(
+            mockUsers.filter((user)=>user[filter].includes(value))
+        )
 });
+
+app.post('/api/users',(req,res)=>{
+    console.log(req.body);
+    const {body}=req;
+
+
+    const newUser= {id:mockUsers[mockUsers.length-1].id+1,...body};
+    mockUsers.push(newUser)
+    return res.status(201).send(newUser)
+})
 
 app.get("/api/users/:id",(req,res)=>{
     console.log(req.params)
@@ -62,6 +102,8 @@ app.get("/api/products/:id",(req,res)=>{
     return res.send(findProduct)
 });
 
+
+
 app.get('/api/posts',async(req, res)=>{
     try{
         const response= await fetch(`https://jsonplaceholder.typicode.com/posts`);
@@ -74,6 +116,7 @@ app.get('/api/posts',async(req, res)=>{
 
     }
 })
+
 
 app.listen(PORT,()=>{
     console.log(`running on Port ${PORT}`)
